@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import "./App.css";
 import Header from "./header";
+import { Pagination_page } from "./pagination";
 
 function App() {
   const [value, setValue] = useState("movie");
@@ -8,7 +9,7 @@ function App() {
   const [pages, setPages] = useState([]);
   const [index, setIndex] = useState(1);
   const [loading, setLoading] = useState(false);
-
+  const [total_pages, setTotal_pages] = useState(null);
   useEffect(() => {
     setLoading(true);
     fetch(
@@ -16,11 +17,11 @@ function App() {
     )
       .then((r) => r.json())
       .then((result) => {
-        setTimeout(() => {
-          setMovies(result.results);
-          setPages(Array.from({ length: result.total_pages }, (v, x) => x + 1));
-          setLoading(false);
-        }, 1000);
+        setMovies(result.results);
+        const length = result.total_pages < 6 ? result.total_pages : 6;
+        setTotal_pages(result.total_pages);
+        setPages(Array.from({ length: length }, (v, x) => x + 1));
+        setLoading(false);
       });
   }, [value, index]);
   useEffect(() => {
@@ -30,20 +31,19 @@ function App() {
     e.preventDefault();
     setValue(e.target[0].value);
   };
-
   return (
     <>
       <Header />
       <div className="container App  ">
         <form onSubmit={onSubmit} action="" className="my-4 row ">
-          <div class="input-group mb-3">
+          <div className="input-group mb-3">
             <input
               type="text"
-              class="form-control"
+              className="form-control"
               placeholder="Name of movie"
             />
             <button
-              class="btn btn-outline-primary"
+              className="btn btn-outline-primary"
               type="submit"
               id="button-addon2"
             >
@@ -81,31 +81,18 @@ function App() {
             })
           )}
         </div>
-        <div className=" d-flex justify-content-center">
-          <nav aria-label="...">
-            <ul className="pagination">
-              {movies &&
-                pages &&
-                pages.length > 1 &&
-                pages.map((page) => {
-                  return (
-                    <li
-                      key={page}
-                      onClick={(e) => setIndex(page)}
-                      className="page-item"
-                    >
-                      <a
-                        className={`page-link ${index == page ? "active" : ""}`}
-                        href="#"
-                      >
-                        {page}
-                      </a>
-                    </li>
-                  );
-                })}
-            </ul>
-          </nav>
-        </div>
+        {!loading && (
+          <ul className="pagination d-flex justify-content-center">
+            {
+              <Pagination_page
+                index={index}
+                setIndex={setIndex}
+                TotalPage={total_pages}
+                pages={pages}
+              />
+            }
+          </ul>
+        )}
       </div>
     </>
   );
